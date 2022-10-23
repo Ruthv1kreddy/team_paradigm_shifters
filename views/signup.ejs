@@ -20,7 +20,12 @@
     <%- include('./includes/nav.ejs') %>
     <div class="container">
       <h2>SIGN UP</h2>
+      <% if(user=='patient'){ %> 
       <form action="/sign-up" method="post">
+        <% } %> 
+        <% if(user=='hospital'){ %>
+          <form action="/sign-up/hospital" method="post">
+            <% } %> 
         <div class="signup-options">
           <!-- <input type="radio" id="patient" name="signupoption" value="patient" hidden />
           <label for="patient">PATIENT</label>
@@ -44,8 +49,8 @@
         </div>
         <% } %> <% if(user=='hospital'){ %>
         <div class="form-control">
-          <label for="hospitalName"><i class="fa-regular fa-user"></i> hospital Name</label>
-          <input type="text" name="hospitalName" id="hospitalName" placeholder="hospital Name" required />
+          <label for="username"><i class="fa-regular fa-user"></i> Hospital Id</label>
+          <input type="text" name="username" id="username" placeholder="hospital Id" required />
           <div class="validation-container">
             <i class="fas fa-check-circle"></i>
             <i class="fas fa-exclamation-circle"></i>
@@ -54,7 +59,7 @@
         </div>
         <% } %>
         <div class="form-control">
-          <label for="email"><i class="fa-regular fa-envelope"></i> email</label>
+          <label for="email"><i class="fa-regular fa-envelope"></i> Email</label>
           <input type="text" name="email" id="email" placeholder="email" required />
           <div class="validation-container">
             <i class="fas fa-check-circle"></i>
@@ -64,7 +69,7 @@
         </div>
 
         <div class="form-control">
-          <label for="password"><i class="fa-solid fa-lock"></i> password</label>
+          <label for="password"><i class="fa-solid fa-lock"></i> Password</label>
           <div class="password-wrapper">
             <i class="fa-regular fa-eye password-show"></i>
             <input type="password" name="password" id="password" placeholder="password" required />
@@ -76,7 +81,7 @@
           </div>
         </div>
         <div class="form-control">
-          <label for="repassword"><i class="fa-solid fa-lock"></i> re-type password</label>
+          <label for="repassword"><i class="fa-solid fa-lock"></i> Re-type password</label>
           <div class="password-wrapper">
             <i class="fa-regular fa-eye password-show"></i>
             <input type="password" name="repassword" id="repassword" required />

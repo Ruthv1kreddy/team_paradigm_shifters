@@ -20,7 +20,14 @@
     <%- include('./includes/nav.ejs') %> <% if(isAuthenticated){ %>
     <div class="loggedin-container">
       <ul class="file-container">
-        <% files.forEach((p,pos)=>{ %>
+        <% if(path=='hospital'){ %>
+        <div class="patient-id-container">
+          <form action="/get-patient" method="post">
+            <label for="patientid">Patient Id</label>
+            <input type="text" name="patientid" id="patientid" placeholder="patient Id" />
+          </form>
+        </div>
+        <% } %> <% files.forEach((p,pos)=>{ %>
         <li
           class="file-item"
           data-filename="<%= p.name %> "
@@ -36,17 +43,22 @@
         <% }) %>
       </ul>
       <div class="side-file-preview">
-        <div class="heading-side"><i class="fa-regular fa-file-lines"></i> File Preview</div>
-        <div class="file-preview">
-          <div class="file-preview--file-"></div>
-          <div class="file-preview--file-name">alangalgn.pdf</div>
-          <div class="file-preview--file-info">2.5GB, lagnlagknalknaln</div>
-          <h3>File Hash:</h3>
-          <div class="file-preview--file-hash" style="font-size: 11px">2.5GB, lagnlagknalknaln</div>
+        <div class="file-info">
+          <div class="heading-side"><i class="fa-regular fa-file-lines"></i> File Preview</div>
+          <div class="file-preview">
+            <!-- <div class="file-preview--file-"></div> -->
+            <div class="file-preview--file-name">file name:</div>
+            <div class="file-preview--file-info">file info:</div>
+            <h3>File Hash:</h3>
+            <div class="file-preview--file-hash" style="font-size: 11px"></div>
+          </div>
+          <div class="file-description"></div>
         </div>
-        <div class="file-description"></div>
-        <!-- <div></div> -->
+        <div class="filedata">
+          <div class="heading-file-data">My Data Insights</div>
+        </div>
       </div>
+      <div class="bottom-link-doctor"><a href="/meetYourDoctor">Meet Your Doctor</a></div>
     </div>
     <% }else{ %>
     <div class="top-container">
@@ -129,6 +141,7 @@
         filePreviewInfo.innerHTML = filesize + "  " + selectedfileitem.dataset.createdat;
         filepreviewhash.innerHTML = selectedfileitem.dataset.filehash;
       }
+      // document.querySelectorAll(".file-item")[0]?.click();
     </script>
     <% } %>
   </body>

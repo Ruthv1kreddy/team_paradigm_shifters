@@ -54,6 +54,17 @@ const user = sequelize.define(
     tableName: "authorize",
   }
 );
+const hospital = sequelize.define("hospital", {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+
+    autoIncrement: true,
+  },
+  hospitalid: { type: DataTypes.CHAR },
+  password: DataTypes.CHAR,
+  email: DataTypes.CHAR,
+});
 const file = sequelize.define("file", {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   name: { type: DataTypes.CHAR },
@@ -81,13 +92,23 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(flash());
 app.use((req, res, next) => {
   console.log(req.session.user);
+  req.user = null;
   if (req.session.isLoggedIn) {
-    return user.findAll({ where: { id: req.session.user.id } }).then((user) => {
-      req.user = user[0];
-      next();
+    user.findAll({ where: { email: req.session.user.email } }).then((user) => {
+      if (user.length > 0) {
+        req.user = user[0];
+        return next();
+      }
     });
+    hospital.findAll({ where: { email: req.session.user.email } }).then((user) => {
+      if (user.length > 0) {
+        req.user = user[0];
+        return next();
+      }
+    });
+  } else {
+    return next();
   }
-  next();
 });
 app.use((req, res, next) => {
   res.locals.isAuthenticated = req.session.isLoggedIn;
@@ -96,9 +117,12 @@ app.use((req, res, next) => {
 app.get(
   "/upload-file",
   (req, res, next) => {
-    if (req.session.isLoggedIn) {
-      next();
+    if (req.session.isLoggedIn && req.session.type == "patient") {
+      console.log("////");
+      console.log(req.session.type);
+      return next();
     } else {
+      console.log("////");
       res.redirect("/");
     }
   },
@@ -123,37 +147,57 @@ app.post("/sign-up", (req, res, next) => {
     return res.redirect("/");
   });
 });
-
+app.post("/sign-up/hospital", (req, res, next) => {
+  bcrypt.hash(req.body.password, 12).then((hash) => {
+    // console.log(1);
+    hospital.create({ hospitalid: req.body.username, email: req.body.email, password: hash });
+    return res.redirect("/");
+  });
+});
 app.post("/login", (req, res, next) => {
   console.log(req.body.username);
-  bcrypt.hash(req.body.password, 12).then((hash) => {
-    console.log(hash);
-  });
+  let istrue = false;
   user
     .findAll({ where: { email: req.body.username } })
-    .then((user) => {
-      bcrypt
-        .compare(req.body.password, user[0].password)
-        .then((domatch) => {
-          console.log();
-          console.log(domatch);
-          if (domatch) {
-            req.session.user = user[0];
-            req.session.isLoggedIn = true;
+    .then((usera) => {
+      console.log(usera);
+      if (!usera[0]?.password) {
+        // req.flash("error", "Invalid email or password");
+        // return res.redirect("/");
+        return;
+      }
+      return bcrypt.compare(req.body.password, usera[0].password).then((domatch) => {
+        console.log(domatch);
+        istrue = domatch;
+        if (domatch) {
+          req.session.user = usera[0];
+          req.session.isLoggedIn = true;
+          req.session.type = "patient";
+          return res.redirect("/");
+        }
+      });
+    })
+    .then(() => {
+      console.log(istrue);
+      if (!istrue) {
+        hospital.findAll({ where: { email: req.body.username } }).then((hospitals) => {
+          if (!hospitals[0]?.password) {
+            req.flash("error", "Invalid email or password");
             return res.redirect("/");
           }
-          req.flash("error", "Invalid email or password");
-          return res.redirect("/");
-        })
-        .catch((err) => {
-          console.log(err);
-          res.redirect("/");
+          bcrypt.compare(req.body.password, hospitals[0]?.password).then((domatch) => {
+            console.log(domatch);
+            if (domatch) {
+              req.session.user = hospitals[0];
+              req.session.isLoggedIn = true;
+              req.session.type = "hospital";
+              return res.redirect("/");
+            }
+            req.flash("error", "Invalid email or password");
+            return res.redirect("/");
+          });
         });
-    })
-    .catch(() => {
-      console.log("not found");
-      req.flash("error", "Invalid email or password");
-      res.redirect("/");
+      }
     });
   // res.redirect("/");
 });
@@ -186,9 +230,12 @@ app.post("/verify", (req, res, next) => {
 app.post(
   "/upload-file",
   (req, res, next) => {
-    if (req.session.isLoggedIn) {
-      next();
+    if (req.session.isLoggedIn && req.session.type == "patient") {
+      console.log("////");
+      console.log(req.session.type);
+      return next();
     } else {
+      console.log("////");
       res.redirect("/");
     }
   },
@@ -234,13 +281,42 @@ app.get("/verify", (req, res, next) => {
 app.get("/home", (req, res, next) => {
   res.render("home-main", { path: "home", files: [], errormessage: req.flash("error") });
 });
+app.post("/get-patient", (req, res, next) => {
+  user.findAll({ where: { id: req.body.patientid } }).then((patients) => {
+    if (patients.length > 0) {
+      req.session.patientid = req.body.patientid;
+    } else {
+      req.session.patientid = null;
+      req.flash("error", "not a valid patient id");
+    }
+    res.redirect("/");
+  });
+});
+app.get("/meetYourDoctor", (req, res, next) => {
+  return res.render("meetyourdoctor", { path: "meetyourdoctor" });
+});
 app.use("/", (req, res, next) => {
+  console.log(req.user);
   if (req.user) {
-    return req.user.getFiles().then((files) => {
-      console.log(files);
-      res.render("home", { path: "home", files: files, errormessage: req.flash("error") });
-    });
+    if (req.session.type == "patient") {
+      req.user.getFiles().then((files) => {
+        console.log("1");
+        console.log(files);
+        res.render("home", { path: "home", files: files, errormessage: req.flash("error") });
+      });
+    } else if (req.session.type == "hospital") {
+      if (req.session.patientid) {
+        user.findAll({ where: { id: req?.session?.patientid } }).then((patients) => {
+          patients[0].getFiles().then((files) => {
+            res.render("home", { path: "hospital", files: files, errormessage: req.flash("error") });
+          });
+        });
+      } else {
+        res.render("home", { path: "hospital", files: [], errormessage: req.flash("error") });
+      }
+    }
+  } else {
+    res.render("home", { path: "home", files: [], errormessage: req.flash("error") });
   }
-  res.render("home", { path: "home", files: [], errormessage: req.flash("error") });
 });
 app.listen(3080);

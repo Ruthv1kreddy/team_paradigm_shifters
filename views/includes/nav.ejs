@@ -14,7 +14,7 @@
   </div>
   <div class="nav-main">
     <ul class="nav">
-      <li><a href="/home" class="<%= path==="home"?"active":"" %>">home</a></li>
+      <li><a href="<%= isAuthenticated?'/':'/home' %> " class="<%= path==="home"||path=='hospital'?"active":"" %>">home</a></li>
  
       <li><a href="/upload-file" class="<%= path==="upload-file" ?"active":"" %>">upload-file</a></li>
       
