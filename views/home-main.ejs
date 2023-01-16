@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300&display=swap" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css"
+      integrity="sha512-xh6O/CkQoPOWDdYTDqeRdPCVd1SpvCA9XXcUnZS2FmJNp1coAFzvtCN9BmamE+4aHK8yyUHUSCcJHgXloTyT2A=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <title>TOKOWN</title>
+    <link rel="stylesheet" href="/css/main.css" />
+    <link rel="stylesheet" href="/static/css/main.css" />
+    <link rel="stylesheet" href="/css/nav.css" />
+  </head>
+  <body class="bg-blue-200">
+    <%- include('./includes/nav.ejs') %> <% if(isAuthenticated){ %>
+    <div class="loggedin-container">
+      <ul class="file-container">
+        <% files.forEach((p,pos)=>{ %>
+        <li
+          class="file-item"
+          data-filename="<%= p.name %> "
+          data-filehash="<%= p.hash %> "
+          data-createdat="<%= p.createdAt %> "
+          data-filesize="<%= p.size %> "
+        >
+          <div class="file-logo"><i class="fa-regular fa-file"></i></div>
+          <div class="file-name"><%=p.name %></div>
+          <div class="file-date"><%= p.createdAt %></div>
+          <div class="file-options"><i class="fa-solid fa-ellipsis-vertical"></i></div>
+        </li>
+        <% }) %>
+      </ul>
+      <div class="side-file-preview">
+        <div class="heading-side"><i class="fa-regular fa-file-lines"></i> File Preview</div>
+        <div class="file-preview">
+          <div class="file-preview--file-"></div>
+          <div class="file-preview--file-name">alangalgn.pdf</div>
+          <div class="file-preview--file-info">2.5GB, lagnlagknalknaln</div>
+          <h3>File Hash:</h3>
+          <div class="file-preview--file-hash" style="font-size: 11px">2.5GB, lagnlagknalknaln</div>
+        </div>
+        <div class="file-description"></div>
+        <!-- <div></div> -->
+      </div>
+    </div>
+    <% }else{ %>
+    <div class="top-container">
+      <div class="main-container">
+        <h2><span> TOKOWN </span><br><br>Issue, Retrieve and Verify.</h2>
+      </div>
+      <div class="contain">
+        <h1>Login</h1>
+        <form action="/login" method="post">
+          <div class="userbox">
+            <label for="username">Username</label>
+            <input type="text" name="username" id="username" required />
+          </div>
+          <div class="userbox">
+            <label for="password">password</label>
+            <div class="password-wrapper">
+              <i class="fa-regular fa-eye password-show"></i>
+              <input type="password" name="password" id="password" required />
+            </div>
+          </div>
+          <a href="#" style="font-weight: 100">Forget password?</a>
+          <% if(errormessage){ %>
+          <div class="error-message"><%= errormessage %></div>
+          <% } %>
+          <input type="submit" value="Log In" />
+        </form>
+        <span id="bott"></span>
+        <div class="horizontal-break">
+          <span>OR</span>
+        </div>
+        <div class="container-login-signup">
+          <a href="/sign-up" style="outline: none; text-decoration: none"> New to TOKOWN? Sign Up </a>
+        </div>
+      </div>
+    </div>
+
+    <% } %> <% if(!isAuthenticated){ %>
+    <script>
+      const eye = document.getElementsByClassName("password-show")[0];
+      eye.addEventListener("click", (e) => {
+        if (eye.classList.contains("fa-eye")) {
+          eye.nextElementSibling.type = "text";
+          eye.classList.remove("fa-eye");
+          eye.classList.add("fa-eye-slash");
+        } else {
+          eye.nextElementSibling.type = "password";
+          eye.classList.remove("fa-eye-slash");
+          eye.classList.add("fa-eye");
+        }
+      });
+    </script>
+    <% }else{ %>
+    <script>
+      let arr;
+      arr;
+      const filePreviewname = document.getElementsByClassName("file-preview--file-name")[0];
+      const filePreviewInfo = document.getElementsByClassName("file-preview--file-info")[0];
+      const filepreviewhash = document.getElementsByClassName("file-preview--file-hash")[0];
+      document.querySelectorAll(".file-item").forEach((elem, key) => {
+        elem.addEventListener("click", () => {
+          console.log(elem);
+          if (!elem.classList.contains("selected")) {
+            removeclasslist();
+            elem.classList.add("selected");
+            updatepreview();
+          }
+        });
+      });
+      function removeclasslist() {
+        document.querySelectorAll(".file-item").forEach((elem, key) => {
+          if (elem.classList.contains("selected")) {
+            elem.classList.remove("selected");
+          }
+        });
+      }
+      function updatepreview() {
+        const selectedfileitem = document.getElementsByClassName("selected")[0];
+        let fileTotal = parseInt(selectedfileitem.dataset.filesize) / 1024;
+        let filesize;
+        fileTotal < 1024
+          ? (filesize = fileTotal.toFixed(2) + " KB")
+          : (filesize = (fileTotal / (1024 * 1024)).toFixed(2) + " MB");
+        filePreviewname.innerHTML = selectedfileitem.dataset.filename;
+        filePreviewInfo.innerHTML = filesize + "  " + selectedfileitem.dataset.createdat;
+        filepreviewhash.innerHTML = selectedfileitem.dataset.filehash;
+      }
+    </script>
+    <% } %>
+  </body>
+</html>
